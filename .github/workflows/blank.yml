@@ -1,0 +1,41 @@
+name: Masscan and ShuffleDNS Installation
+
+on: [push, pull_request]
+
+jobs:
+  install-tools:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install Masscan
+      run: |
+        git clone https://github.com/blechschmidt/massdns.git
+        cd massdns
+        make
+
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.20
+
+    - name: Install ShuffleDNS
+      run: |
+        go install -v github.com/projectdiscovery/shuffledns/cmd/shuffledns@latest
+
+    - name: Verify installations
+      run: |
+        masscan --version
+        shuffledns -version
+
+    - name: Install Masscan
+      run: |
+        sudo apt-get install -y crunch
+        crunch 1 4 abcdefghijklmnopqrstuvwxyz1234567890 > 4_chars.txt
+        curl -s https://wordlists-cdn.assetnote.io/data/manual/best-dns-wordlist.txt -o best-dns-wordlist.txt
+        curl -s https://wordlists-cdn.assetnote.io/data/manual/2m-subdomains.txt -o 2m-subdomains.txt
+        cat best-dns-wordlist.txt 2m-subdomains.txt 4_chars.txt | sort -u > subdomains-assetnote-merged.txt
+        shuffledns -w subdomains-assetnote-merged.txt -d linecorp.com -r /resolvers
+
