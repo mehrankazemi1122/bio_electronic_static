@@ -1,6 +1,6 @@
 name: Masscan and ShuffleDNS Installation
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   install-tools:
