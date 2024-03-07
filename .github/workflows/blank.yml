@@ -15,6 +15,7 @@ jobs:
         git clone https://github.com/blechschmidt/massdns.git
         cd massdns
         make
+        masscan --version
 
     - name: Install Go
       uses: actions/setup-go@v2
@@ -24,11 +25,12 @@ jobs:
     - name: Install ShuffleDNS
       run: |
         go install -v github.com/projectdiscovery/shuffledns/cmd/shuffledns@latest
-
-    - name: Verify installations
-      run: |
-        masscan --version
         shuffledns -version
+
+#    - name: Verify installations
+#      run: |
+#        masscan --version
+#        shuffledns -version
 
     - name: Install Masscan
       run: |
