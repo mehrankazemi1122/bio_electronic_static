@@ -42,7 +42,8 @@ jobs:
         crunch 1 4 abcdefghijklmnopqrstuvwxyz1234567890 > 4_chars.txt
         curl -s https://wordlists-cdn.assetnote.io/data/manual/best-dns-wordlist.txt -o best-dns-wordlist.txt
         curl -s https://wordlists-cdn.assetnote.io/data/manual/2m-subdomains.txt -o 2m-subdomains.txt
-        cat best-dns-wordlist.txt 2m-subdomains.txt 4_chars.txt | sort -u > subdomains-assetnote-merged.txt
+        curl -s https://wordlists-cdn.assetnote.io/data/automated/httparchive_subdomains_2024_01_28.txt -o all_subs.txt
+        cat best-dns-wordlist.txt 2m-subdomains.txt 4_chars.txt all_subs.txt | sort -u > subdomains-assetnote-merged.txt
         cat subdomains-assetnote-merged.txt | wc -l
         shuffledns -w subdomains-assetnote-merged.txt -d americansystems.com -r resolvers.txt -m massdns/bin/massdns -o output.txt
         
