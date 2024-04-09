@@ -45,7 +45,7 @@ jobs:
         curl -s https://wordlists-cdn.assetnote.io/data/automated/httparchive_subdomains_2024_01_28.txt -o all_subs.txt
         cat best-dns-wordlist.txt 2m-subdomains.txt 4_chars.txt all_subs.txt | sort -u > subdomains-assetnote-merged.txt
         cat subdomains-assetnote-merged.txt | wc -l
-        shuffledns -w subdomains-assetnote-merged.txt -d nhaero.com -r resolvers.txt -m massdns/bin/massdns -o output.txt
+        shuffledns -w subdomains-assetnote-merged.txt -d dev.remitly.com -r resolvers.txt -m massdns/bin/massdns -o output.txt
         
     - name: Upload output as artifact
       uses: actions/upload-artifact@v2
