@@ -52,7 +52,7 @@ jobs:
         cat full.txt | wc -l
 
         
-        shuffledns -w full.txt -d verisign.com -r resolvers.txt -m massdns/bin/massdns -o output.txt -mode bruteforce
+        shuffledns -w full.txt -d namestudio.com -r resolvers.txt -m massdns/bin/massdns -o output.txt -mode bruteforce
  #       cat output.txt | while read line;do shuffledns -w subdomains-assetnote-merged.txt -d $line -r resolvers.txt -m massdns/bin/massdns -o $line_output.txt -silent;done
     - name: Upload output as artifact
       uses: actions/upload-artifact@v2
