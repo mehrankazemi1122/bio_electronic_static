@@ -39,13 +39,14 @@ jobs:
         mkdir -p wordlists
         cd wordlists
         crunch 1 4 abcdefghijklmnopqrstuvwxyz1234567890 > 4_chars.txt
-        wget -q https://github.com/zzzteph/substats/raw/main/wordlists/all -O all.txt
-        wget -q https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/combined_subdomains.txt -O combined.txt
-        wget -q https://memoryleaks.ir/wordlist/10m-sub-voorivex.txt -O yasho.txt
+        wget -q https://github.com/zzzteph/substats/raw/refs/heads/main/wordlists/all -O all.txt
+        wget -q https://raw.githubusercontent.com/zzzteph/probable_subdomains/refs/heads/main/wordlists/hostnames/subdomains_1m.txt -O all2.txt
+        wget -q https://github.com/danielmiessler/SecLists/raw/refs/heads/master/Discovery/DNS/combined_subdomains.txt -O combined.txt
+        wget -q https://memoryleaks.ir/wordlist/10m-sub-voorivex.txt -O yasho.txt || true
         wget -q https://raw.githubusercontent.com/n0kovo/n0kovo_subdomains/main/n0kovo_subdomains_huge.txt -O kovo_subs.txt
         wget -q https://wordlists-cdn.assetnote.io/data/manual/best-dns-wordlist.txt -O best-dns-wordlist.txt
         wget -q https://wordlists-cdn.assetnote.io/data/manual/2m-subdomains.txt -O 2m-subdomains.txt
-        wget -q https://wordlists-cdn.assetnote.io/data/automated/httparchive_subdomains_2024_01_28.txt -O all_subs.txt
+        wget -q https://wordlists-cdn.assetnote.io/data/automated/httparchive_subdomains_2026_02_27.txt -O all_subs.txt
         cat *.txt | sort -u > ../full.txt
         cd ..
         wget -q https://raw.githubusercontent.com/trickest/resolvers/main/resolvers-trusted.txt -O resolvers.txt
