@@ -1,4 +1,4 @@
-name: ShuffleDNS Recon
+name: ShuffleDNS Recon Distributed Matrix
 
 on:
   workflow_dispatch:
@@ -9,29 +9,9 @@ on:
         type: string
 
 jobs:
-  recon:
+  prepare-wordlists:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Install MassDNS
-      run: |
-        git clone https://github.com/blechschmidt/massdns.git
-        cd massdns
-        make
-        sudo cp bin/massdns /usr/local/bin/massdns
-
-    - name: Install Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21.x'
-
-    - name: Install ShuffleDNS
-      run: |
-        go install -v github.com/projectdiscovery/shuffledns/cmd/shuffledns@latest
-
     - name: Setup Dependencies and Wordlists
       run: |
         sudo apt-get update
@@ -49,14 +29,81 @@ jobs:
         wget -q https://wordlists-cdn.assetnote.io/data/automated/httparchive_subdomains_2026_02_27.txt -O all_subs.txt
         cat *.txt | sort -u > ../full.txt
         cd ..
-        wget -q https://raw.githubusercontent.com/trickest/resolvers/main/resolvers-trusted.txt -O resolvers.txt
-
-    - name: Execute ShuffleDNS
+        wget -q https://raw.githubusercontent.com/trickest/resolvers/main/resolvers-trusted.txt -O resolvers.txt || true
+        
+    - name: Split Wordlist into 20 Chunks
       run: |
-        ~/go/bin/shuffledns -w full.txt -d ${{ inputs.target_domain }} -r resolvers.txt -m /usr/local/bin/massdns -o output.txt -mode bruteforce
+        split -n l/20 full.txt chunk_
+        a=1
+        for i in chunk_*; do
+          mv "$i" "chunk_$a.txt"
+          a=$((a+1))
+        done
 
-    - name: Upload output as artifact
+    - name: Upload Chunks and Resolvers
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.target_domain }}-subdomains
-        path: output.txt
+        name: prep-data
+        path: |
+          chunk_*.txt
+          resolvers.txt
+        retention-days: 1
+
+  execute-matrix:
+    needs: prepare-wordlists
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        chunk: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    steps:
+    - name: Install MassDNS
+      run: |
+        git clone https://github.com/blechschmidt/massdns.git
+        cd massdns
+        make
+        sudo cp bin/massdns /usr/local/bin/massdns
+
+    - name: Install Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21.x'
+
+    - name: Install ShuffleDNS
+      run: |
+        go install -v github.com/projectdiscovery/shuffledns/cmd/shuffledns@latest
+
+    - name: Download Prep Data
+      uses: actions/download-artifact@v4
+      with:
+        name: prep-data
+
+    - name: Execute ShuffleDNS on Chunk ${{ matrix.chunk }}
+      run: |
+        ~/go/bin/shuffledns -w chunk_${{ matrix.chunk }}.txt -d ${{ inputs.target_domain }} -r resolvers.txt -m /usr/local/bin/massdns -o output_${{ matrix.chunk }}.txt -mode bruteforce
+
+    - name: Upload Chunk Output
+      uses: actions/upload-artifact@v4
+      with:
+        name: result-chunk-${{ matrix.chunk }}
+        path: output_${{ matrix.chunk }}.txt
+        retention-days: 1
+
+  merge-results:
+    needs: execute-matrix
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download All Chunk Outputs
+      uses: actions/download-artifact@v4
+      with:
+        pattern: result-chunk-*
+        merge-multiple: true
+
+    - name: Merge and Clean Final Results
+      run: |
+        cat output_*.txt | sort -u > final_subdomains.txt
+
+    - name: Upload Final Subdomains
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.target_domain }}-final-subdomains
+        path: final_subdomains.txt
